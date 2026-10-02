@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Literatura em Jogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF8F0;--ink:#3B2A4A;--muted:#8A7793;
+    --coral:#FF6B5B;--gold:#F2B705;--teal:#1D9A8C;--violet:#8A5CF6;
+    --panel:#FFFFFF;--line:#F0E4D8;--accent:var(--violet);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Nunito',sans-serif;line-height:1.6;overflow-x:hidden;}
+  h1,h2,h3,.display{font-family:'Baloo 2',sans-serif;font-weight:700;}
+  .wrap{max-width:840px;margin:0 auto;padding:0 22px;position:relative;z-index:1;}
+  section{padding:50px 0;}
+
+  #starBar{position:fixed;top:14px;right:14px;z-index:60;background:#fff;border:3px solid var(--gold);border-radius:24px;padding:7px 16px;font-family:'Baloo 2';font-weight:700;font-size:0.95rem;box-shadow:4px 4px 0 rgba(242,183,5,0.35);}
+  #starBar.bump{animation:pop 0.35s ease;}
+
+  .hero{padding:64px 0 46px;background:linear-gradient(160deg,#FFE3B0 0%,#FFD3E0 60%,#FFF8F0 100%);position:relative;overflow:hidden;}
+  .hero .deco{position:absolute;border-radius:50%;opacity:0.5;}
+  .hero .kicker{color:var(--coral);font-weight:700;font-size:0.85rem;letter-spacing:0.04em;margin-bottom:12px;}
+  .hero h1{font-size:2.15rem;line-height:1.25;margin:0 0 16px;max-width:19ch;color:var(--violet);}
+  .hero p{color:var(--muted);font-size:1rem;max-width:58ch;margin:0;font-weight:600;}
+
+  .part-header{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+  .part-badge{font-family:'Baloo 2';color:#fff;padding:7px 18px;border-radius:20px;font-size:0.82rem;font-weight:700;}
+  .part-header h2{font-size:1.55rem;margin:0;}
+  .part-sub{color:var(--muted);margin:14px 0 26px;max-width:64ch;font-weight:600;}
+
+  .flip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:26px;}
+  .flip-card{perspective:1200px;height:180px;cursor:pointer;}
+  .flip-inner{position:relative;width:100%;height:100%;transition:transform 0.55s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d;}
+  .flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+  .flip-front,.flip-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:center;}
+  .flip-front{background:#fff;border:2px solid var(--line);text-align:center;align-items:center;gap:6px;box-shadow:0 3px 12px rgba(59,42,74,0.07);}
+  .flip-front .emo{font-size:1.9rem;}
+  .flip-front h3{margin:0;font-size:0.96rem;color:var(--ink);}
+  .flip-front .hint{color:var(--muted);font-size:0.76rem;margin-top:2px;}
+  .flip-back{color:#fff;transform:rotateY(180deg);font-size:0.85rem;}
+  .flip-back p{margin:0;}
+
+  .match-game{background:#fff;border-radius:18px;padding:20px 22px;margin-bottom:26px;border:2px solid var(--line);box-shadow:0 3px 14px rgba(59,42,74,0.07);}
+  .match-game h4{margin:0 0 4px;font-size:1.05rem;}
+  .match-game .instr{color:var(--muted);font-size:0.85rem;margin:0 0 16px;font-weight:600;}
+  .match-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .match-col{display:flex;flex-direction:column;gap:10px;}
+  .match-chip{background:#FFF8F0;border:2px solid var(--line);border-radius:12px;padding:11px 12px;font-size:0.85rem;font-weight:700;text-align:center;cursor:pointer;}
+  .match-chip.selected{border-color:var(--teal);background:#E3F7F4;}
+  .match-chip.matched{border-color:var(--teal);background:#E3F7F4;color:#136158;cursor:default;}
+  .match-chip.shake{animation:shake 0.35s;border-color:var(--coral);}
+
+  .quiz-label{font-size:0.85rem;color:var(--muted);margin-bottom:14px;font-weight:700;font-family:'Baloo 2';}
+  .question{background:#fff;border-radius:14px;padding:20px 22px;margin-bottom:14px;box-shadow:0 3px 14px rgba(59,42,74,0.07);}
+  .q-text{font-weight:700;margin:0 0 14px;font-size:0.96rem;}
+  .options{display:flex;flex-direction:column;gap:8px;}
+  .opt-btn{text-align:left;background:#FFF8F0;border:2px solid var(--line);color:var(--ink);padding:11px 14px;border-radius:10px;font-family:'Nunito';font-weight:600;font-size:0.9rem;cursor:pointer;}
+  .opt-btn:hover:not(:disabled){border-color:var(--teal);}
+  .opt-btn.correct{background:#E3F7F4;border-color:var(--teal);color:#136158;animation:pop 0.3s ease;}
+  .opt-btn.wrong{background:#FFE7E3;border-color:var(--coral);color:#A8321E;animation:shake 0.3s;}
+  .opt-btn:disabled{cursor:default;}
+  .explain{margin-top:12px;padding:12px 14px;background:#FFF8F0;border-radius:10px;font-size:0.88rem;color:var(--muted);display:none;}
+  .explain.show{display:block;}
+  .explain b{color:var(--ink);}
+
+  .memory-wrap{background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 16px rgba(59,42,74,0.08);}
+  .memory-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .memory-stat{background:#FFF8F0;border-radius:20px;padding:6px 16px;font-weight:700;font-size:0.85rem;color:var(--violet);}
+  .memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .mem-card{aspect-ratio:1/1;perspective:800px;cursor:pointer;}
+  .mem-inner{position:relative;width:100%;height:100%;transition:transform 0.4s;transform-style:preserve-3d;}
+  .mem-card.open .mem-inner{transform:rotateY(180deg);}
+  .mem-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+  .mem-back{background:linear-gradient(135deg,var(--violet),var(--coral));color:#fff;font-size:1.6rem;}
+  .mem-front{background:#FFF8F0;border:2px solid var(--line);transform:rotateY(180deg);flex-direction:column;gap:2px;padding:4px;text-align:center;}
+  .mem-front .fe{font-size:1.6rem;}
+  .mem-front .fl{font-size:0.6rem;font-weight:700;color:var(--ink);}
+  .mem-card.matched .mem-front{background:#E3F7F4;border-color:var(--teal);}
+  .mem-card.matched{cursor:default;}
+  .memory-done{display:none;margin-top:16px;background:linear-gradient(120deg,var(--violet),var(--coral));color:#fff;border-radius:14px;padding:16px;text-align:center;font-family:'Baloo 2';font-weight:700;}
+  .memory-done.show{display:block;animation:pop 0.4s ease;}
+  .reset-memory-btn{margin-top:14px;background:var(--teal);color:#fff;border:none;padding:10px 20px;border-radius:20px;font-family:'Baloo 2';font-weight:700;font-size:0.85rem;cursor:pointer;}
+
+  footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:0.85rem;}
+
+  @keyframes pop{0%{transform:scale(0.7);opacity:0;}70%{transform:scale(1.06);opacity:1;}100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  @keyframes flyStar{0%{transform:translate(0,0) scale(1);opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(0.3);opacity:0;}}
+  .star-fx{position:fixed;z-index:70;font-size:1.4rem;pointer-events:none;animation:flyStar 0.85s ease-out forwards;}
+
+  @media(max-width:600px){
+    .hero h1{font-size:1.75rem;}
+    section{padding:38px 0;}
+    .match-cols{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div id="starBar">⭐ <span id="starCount">0</span></div>
+
+<section class="hero">
+  <div class="deco" style="width:120px;height:120px;background:var(--gold);top:-20px;right:10%;"></div>
+  <div class="deco" style="width:70px;height:70px;background:var(--teal);bottom:0px;left:6%;opacity:0.4;"></div>
+  <div class="deco" style="width:46px;height:46px;background:var(--coral);bottom:30px;right:22%;opacity:0.4;"></div>
+  <div class="wrap">
+    <div class="kicker">📚 LITERATURA E GRAMÁTICA</div>
+    <h1>Literatura em Jogo</h1>
+    <p>Toque nas cartas, combine os pares e descubra como as palavras ganham vida — em figuras de linguagem, textos e frases.</p>
+  </div>
+</section>
+
+<section id="parte1">
+  <div class="wrap">
+    <div class="part-header"><span class="part-badge" style="background:var(--violet);">Parte 1</span><h2>🎭 Figuras de Linguagem</h2></div>
+    <p class="part-sub">Formas criativas de dizer algo de um jeito mais bonito, mais forte ou mais engraçado.</p>
+    <div class="flip-grid" id="flipGrid1"></div>
+
+    <div class="match-game">
+      <h4>🔗 Combine a Figura com o Exemplo</h4>
+      <p class="instr">Toque na figura de linguagem e depois no exemplo certo.</p>
+      <div class="match-cols">
+        <div class="match-col" id="matchLeft1"></div>
+        <div class="match-col" id="matchRight1"></div>
+      </div>
+    </div>
+
+    <div class="quiz-label">🤔 Exercícios</div>
+    <div id="quiz1"></div>
+  </div>
+</section>
+
+<section id="parte2">
+  <div class="wrap">
+    <div class="part-header"><span class="part-badge" style="background:var(--coral);">Parte 2</span><h2>📊 Infográfico</h2></div>
+    <p class="part-sub">Um gênero de texto que explica informações usando imagens e poucas palavras.</p>
+    <div class="flip-grid" id="flipGrid2"></div>
+    <div class="quiz-label">🤔 Exercícios</div>
+    <div id="quiz2"></div>
+  </div>
+</section>
+
+<section id="parte3">
+  <div class="wrap">
+    <div class="part-header"><span class="part-badge" style="background:var(--gold);color:#4A3400;">Parte 3</span><h2>📖 Crônicas</h2></div>
+    <p class="part-sub">Textos curtos que comentam o dia a dia — um dos gêneros mais queridos da literatura brasileira.</p>
+    <div class="flip-grid" id="flipGrid3"></div>
+    <div class="quiz-label">🤔 Exercícios</div>
+    <div id="quiz3"></div>
+  </div>
+</section>
+
+<section id="parte4">
+  <div class="wrap">
+    <div class="part-header"><span class="part-badge" style="background:var(--teal);">Parte 4</span><h2>📚 Literatura: Elementos da Narrativa</h2></div>
+    <p class="part-sub">Toda história é construída com as mesmas peças básicas — conhecer elas ajuda a entender qualquer livro.</p>
+    <div class="flip-grid" id="flipGrid4"></div>
+    <div class="quiz-label">🤔 Exercícios</div>
+    <div id="quiz4"></div>
+  </div>
+</section>
+
+<section id="parte5">
+  <div class="wrap">
+    <div class="part-header"><span class="part-badge" style="background:var(--violet);">Parte 5</span><h2>🔇 Frases Nominais e Verbais</h2></div>
+    <p class="part-sub">Toda frase tem verbo? Não! E essa diferença muda completamente o efeito de uma frase.</p>
+    <div class="flip-grid" id="flipGrid5"></div>
+    <div class="quiz-label">🤔 Exercícios</div>
+    <div id="quiz5"></div>
+  </div>
+</section>
+
+<section id="jogo">
+  <div class="wrap">
+    <div class="part-header"><span class="part-badge" style="background:var(--coral);">Jogo Dinâmico</span><h2>🧩 Jogo da Memória</h2></div>
+    <p class="part-sub">Encontre os pares iguais entre os termos que você aprendeu hoje!</p>
+    <div class="memory-wrap">
+      <div class="memory-top">
+        <span class="memory-stat">🎯 Pares: <span id="memFound">0</span>/8</span>
+        <span class="memory-stat">🔄 Tentativas: <span id="memTries">0</span></span>
+      </div>
+      <div class="memory-grid" id="memoryGrid"></div>
+      <div class="memory-done" id="memoryDone">🎉 Você encontrou todos os pares! Leitura e memória andam juntas!</div>
+      <button class="reset-memory-btn" id="resetMemBtn">🔄 Jogar de novo</button>
+    </div>
+  </div>
+</section>
+
+<footer>Literatura em Jogo — material de estudo</footer>
+
+<script>
+let stars = 0;
+const starCountEl = document.getElementById('starCount');
+const starBarEl = document.getElementById('starBar');
+
+function addStar(x, y){
+  stars++;
+  starCountEl.textContent = stars;
+  starBarEl.classList.remove('bump'); void starBarEl.offsetWidth; starBarEl.classList.add('bump');
+  spawnBurst(x, y);
+}
+function spawnBurst(x, y){
+  const symbols = ['⭐','✨'];
+  for(let i=0;i<5;i++){
+    const el = document.createElement('span');
+    el.className = 'star-fx';
+    el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    const angle = Math.random()*Math.PI*2, dist = 36 + Math.random()*36;
+    el.style.setProperty('--dx', (Math.cos(angle)*dist)+'px');
+    el.style.setProperty('--dy', (Math.sin(angle)*dist - 18)+'px');
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 800);
+  }
+}
+
+/* ---------- FLIP CARDS ---------- */
+const FLIP1 = [
+  { emo:"🔄", title:"Comparação", back:"Compara duas coisas usando 'como'. Ex: 'Ela é rápida como um raio.'" },
+  { emo:"🎭", title:"Metáfora", back:"Compara duas coisas SEM usar 'como', como se uma fosse a outra. Ex: 'Ela é um raio.'" },
+  { emo:"🌳", title:"Personificação", back:"Dá características humanas a algo que não é humano. Ex: 'O vento sussurrava segredos.'" },
+  { emo:"📢", title:"Hipérbole", back:"Um exagero proposital pra dar ênfase. Ex: 'Já te disse isso um milhão de vezes!'" },
+  { emo:"😏", title:"Ironia", back:"Diz o contrário do que realmente se pensa, de forma sarcástica ou engraçada. Ex: 'Que ótimo, perdi o ônibus de novo!'" },
+  { emo:"💥", title:"Onomatopeia", back:"Palavra que imita um som. Ex: 'Bum!', 'Miau', 'Tique-taque'." }
+];
+const FLIP2 = [
+  { emo:"📊", title:"O que é?", back:"Um texto que usa imagens, números e poucas palavras para explicar uma informação de forma rápida e visual." },
+  { emo:"🎯", title:"Objetivo", back:"Informar de um jeito fácil de entender num piscar de olhos — ótimo quando o assunto tem muitos dados." },
+  { emo:"🖼️", title:"Elementos", back:"Título, ícones, gráficos, cores e frases curtas — tudo organizado visualmente." },
+  { emo:"📍", title:"Onde aparece", back:"Jornais, revistas, redes sociais e até livros didáticos — como essa própria aula!" }
+];
+const FLIP3 = [
+  { emo:"📖", title:"O que é?", back:"Um texto curto que comenta situações do dia a dia, muitas vezes com humor ou reflexão." },
+  { emo:"🗣️", title:"Linguagem", back:"Simples e próxima de como as pessoas realmente falam — bem diferente de um texto científico." },
+  { emo:"📰", title:"Onde nasce", back:"Surgiu nos jornais, publicada quase como uma conversa com o leitor sobre o cotidiano." },
+  { emo:"✍️", title:"Um nome famoso", back:"Rubem Braga é conhecido como um dos maiores cronistas brasileiros — escrevia sobre coisas simples do dia a dia de um jeito encantador." }
+];
+const FLIP4 = [
+  { emo:"📚", title:"Enredo", back:"É a sequência de acontecimentos da história — o que acontece do início ao fim." },
+  { emo:"👤", title:"Personagens", back:"Quem vive a história. O protagonista é o personagem principal; o antagonista cria conflito com ele." },
+  { emo:"🎙️", title:"Narrador", back:"A voz que conta a história. Pode narrar em 1ª pessoa ('eu vi...') ou em 3ª pessoa ('ele viu...')." },
+  { emo:"⏳", title:"Tempo", back:"Quando a história acontece — pode durar um dia, anos, ou se passar no passado, presente ou futuro." },
+  { emo:"🏞️", title:"Espaço", back:"Onde a história acontece — uma casa, uma cidade, ou até um mundo imaginário." }
+];
+const FLIP5 = [
+  { emo:"🔇", title:"Frase Nominal", back:"É uma frase SEM verbo, construída em torno de um substantivo ou adjetivo. Ex: 'Silêncio total.'" },
+  { emo:"🔊", title:"Frase Verbal", back:"É uma frase QUE TEM verbo — a maioria das frases que usamos no dia a dia. Ex: 'Fez-se silêncio total.'" },
+  { emo:"⚡", title:"Por que usar nominal?", back:"Para dar impacto, rapidez ou emoção — muito usada em títulos, propagandas e poesias." },
+  { emo:"📣", title:"Exemplo em título", back:"'Fogo na floresta!' é uma frase nominal perfeita para um título de notícia — direta e impactante." }
+];
+
+const FLIP_COLORS = ['var(--violet)','var(--coral)','var(--teal)','#C98A00'];
+function renderFlipCards(containerId, data){
+  const container = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'flip-card';
+    const color = FLIP_COLORS[i % FLIP_COLORS.length];
+    card.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-front">
+          <div class="emo">${item.emo}</div>
+          <h3>${item.title}</h3>
+          <div class="hint">toque para descobrir</div>
+        </div>
+        <div class="flip-back" style="background:${color};"><p>${item.back}</p></div>
+      </div>`;
+    let opened = false;
+    card.addEventListener('click', (e) => {
+      card.classList.toggle('flipped');
+      if(!opened && card.classList.contains('flipped')){ opened = true; addStar(e.clientX, e.clientY); }
+    });
+    container.appendChild(card);
+  });
+}
+renderFlipCards('flipGrid1', FLIP1);
+renderFlipCards('flipGrid2', FLIP2);
+renderFlipCards('flipGrid3', FLIP3);
+renderFlipCards('flipGrid4', FLIP4);
+renderFlipCards('flipGrid5', FLIP5);
+
+/* ---------- MATCHING GAME ---------- */
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function renderMatch(leftId, rightId, pairs){
+  const leftCol = document.getElementById(leftId), rightCol = document.getElementById(rightId);
+  const leftItems = shuffle(pairs.map(p => ({id:p.id, text:p.left})));
+  const rightItems = shuffle(pairs.map(p => ({id:p.id, text:p.right})));
+  let selected = null;
+  function makeChip(item, col){
+    const chip = document.createElement('div');
+    chip.className = 'match-chip';
+    chip.textContent = item.text;
+    chip.dataset.pair = item.id;
+    chip.addEventListener('click', (e) => {
+      if(chip.classList.contains('matched')) return;
+      if(col === 'left'){
+        if(selected) selected.el.classList.remove('selected');
+        selected = {el:chip, pair:item.id};
+        chip.classList.add('selected');
+      } else {
+        if(!selected) return;
+        if(String(selected.pair) === String(item.id)){
+          selected.el.classList.remove('selected'); selected.el.classList.add('matched');
+          chip.classList.add('matched');
+          addStar(e.clientX, e.clientY);
+          selected = null;
+        } else {
+          chip.classList.add('shake'); selected.el.classList.add('shake');
+          setTimeout(() => { chip.classList.remove('shake'); selected && selected.el.classList.remove('shake','selected'); selected = null; }, 400);
+        }
+      }
+    });
+    return chip;
+  }
+  leftItems.forEach(item => leftCol.appendChild(makeChip(item, 'left')));
+  rightItems.forEach(item => rightCol.appendChild(makeChip(item, 'right')));
+}
+renderMatch('matchLeft1', 'matchRight1', [
+  {id:0, left:"Metáfora", right:"'Ela é um sol.'"},
+  {id:1, left:"Comparação", right:"'Ela é rápida como um raio.'"},
+  {id:2, left:"Personificação", right:"'O vento sussurrava segredos.'"},
+  {id:3, left:"Onomatopeia", right:"'Bum! Miau! Tique-taque!'"}
+]);
+
+/* ---------- QUIZZES ---------- */
+function renderQuiz(containerId, questions){
+  const container = document.getElementById(containerId);
+  questions.forEach((item) => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'question';
+    const qText = document.createElement('p');
+    qText.className = 'q-text';
+    qText.textContent = item.q;
+    qDiv.appendChild(qText);
+    const optsDiv = document.createElement('div');
+    optsDiv.className = 'options';
+    const explainDiv = document.createElement('div');
+    explainDiv.className = 'explain';
+    explainDiv.innerHTML = '<b>Explicação:</b> ' + item.explain;
+    item.options.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.textContent = opt;
+      btn.addEventListener('click', (e) => {
+        const allBtns = optsDiv.querySelectorAll('.opt-btn');
+        allBtns.forEach(b => b.disabled = true);
+        if (oi === item.correct) { btn.classList.add('correct'); addStar(e.clientX, e.clientY); }
+        else { btn.classList.add('wrong'); allBtns[item.correct].classList.add('correct'); }
+        explainDiv.classList.add('show');
+      });
+      optsDiv.appendChild(btn);
+    });
+    qDiv.appendChild(optsDiv);
+    qDiv.appendChild(explainDiv);
+    container.appendChild(qDiv);
+  });
+}
+
+renderQuiz('quiz1', [
+  { q:"'Ela é um sol.' Qual figura de linguagem é essa?", options:["Comparação","Metáfora","Personificação"], correct:1, explain:"Não usa 'como' — compara diretamente, como se uma coisa fosse a outra. Isso é metáfora." },
+  { q:"'As estrelas piscavam pra mim.' Qual figura de linguagem é essa?", options:["Personificação","Metonímia","Antítese"], correct:0, explain:"Dar a ação de 'piscar pra alguém' às estrelas é dar característica humana a algo que não é humano — personificação." },
+  { q:"'Já corri uma maratona hoje!' (quando a pessoa só andou bastante). Qual figura é essa?", options:["Hipérbole","Ironia","Onomatopeia"], correct:0, explain:"É um exagero proposital pra dar ênfase — isso é hipérbole." },
+  { q:"'Plof!' é um exemplo de qual figura de linguagem?", options:["Onomatopeia","Metáfora","Antítese"], correct:0, explain:"Onomatopeia é a palavra que imita um som — como 'plof', 'bum' ou 'miau'." }
+]);
+
+renderQuiz('quiz2', [
+  { q:"Qual é o principal objetivo de um infográfico?", options:["Contar uma história longa","Informar de forma rápida e visual","Expressar sentimentos pessoais"], correct:1, explain:"Infográficos existem justamente pra transmitir informação de forma rápida e visual." },
+  { q:"O que geralmente NÃO aparece em um infográfico?", options:["Imagens e ícones","Números e dados","Parágrafos longos e extensos"], correct:2, explain:"Infográficos evitam parágrafos longos — preferem frases curtas e elementos visuais." },
+  { q:"Onde você pode encontrar infográficos?", options:["Só em livros de poesia","Em jornais, revistas e redes sociais","Só em bulas de remédio"], correct:1, explain:"Infográficos aparecem bastante em jornais, revistas, redes sociais e materiais educativos." },
+  { q:"Um infográfico combina principalmente:", options:["Som e cheiro","Imagem e texto curto","Apenas números"], correct:1, explain:"A combinação de imagem com texto curto é o que define um infográfico." }
+]);
+
+renderQuiz('quiz3', [
+  { q:"O que é uma crônica?", options:["Um texto longo e científico","Um texto curto sobre situações do dia a dia, com reflexão ou humor","Uma lista de regras"], correct:1, explain:"Crônica é um texto curto que comenta o cotidiano, muitas vezes com humor ou reflexão." },
+  { q:"Crônicas geralmente têm uma linguagem:", options:["Muito formal e difícil","Simples e próxima do cotidiano","Cheia de termos técnicos"], correct:1, explain:"A linguagem da crônica é simples, quase como uma conversa com o leitor." },
+  { q:"Onde as crônicas costumam ser publicadas?", options:["Jornais e revistas","Apenas em livros de matemática","Bulas de remédio"], correct:0, explain:"A crônica nasceu e ainda é muito publicada em jornais e revistas." },
+  { q:"Uma crônica pode falar sobre:", options:["Só assuntos de ficção científica","Observações do dia a dia, como o trânsito ou uma fila de banco","Apenas fórmulas matemáticas"], correct:1, explain:"Crônicas falam justamente sobre pequenas observações da vida cotidiana." }
+]);
+
+renderQuiz('quiz4', [
+  { q:"O que é o 'enredo' de uma história?", options:["O lugar onde a história acontece","A sequência de acontecimentos da história","Quem conta a história"], correct:1, explain:"Enredo é a sequência de fatos que formam a história, do início ao fim." },
+  { q:"Quem é o 'narrador' de uma história?", options:["O autor do livro sempre","A voz que conta a história","O personagem principal sempre"], correct:1, explain:"O narrador é a voz que conta a história — pode ou não ser o próprio autor." },
+  { q:"Quando o narrador participa da história e diz 'eu', ele está narrando em:", options:["Primeira pessoa","Terceira pessoa","Segunda pessoa"], correct:0, explain:"Narrar em primeira pessoa significa que o narrador fala como 'eu', participando da história." },
+  { q:"O que define o 'espaço' na narrativa?", options:["Quando a história acontece","Onde a história acontece","Quem é o personagem principal"], correct:1, explain:"Espaço é o lugar (ou lugares) onde a história se passa." }
+]);
+
+renderQuiz('quiz5', [
+  { q:"O que é uma frase nominal?", options:["Uma frase sem verbo","Uma frase muito longa","Uma frase só com perguntas"], correct:0, explain:"Frase nominal é construída sem verbo, geralmente em torno de um substantivo ou adjetivo." },
+  { q:"Qual destas é uma frase NOMINAL?", options:["O dia está lindo.","Que lindo dia!","Hoje o dia amanheceu lindo."], correct:1, explain:"'Que lindo dia!' não tem verbo — é uma frase nominal." },
+  { q:"Qual destas é uma frase VERBAL (não nominal)?", options:["Silêncio total.","Fogo!","O silêncio tomou conta da sala."], correct:2, explain:"'O silêncio tomou conta da sala' tem o verbo 'tomou' — é uma frase verbal." },
+  { q:"Frases nominais são usadas principalmente para:", options:["Dar um efeito de impacto, rapidez ou emoção","Explicar regras de matemática","Substituir todos os verbos do texto"], correct:0, explain:"A força da frase nominal está em causar impacto rápido — por isso aparece tanto em títulos e propagandas." }
+]);
+
+/* ---------- JOGO DA MEMÓRIA ---------- */
+const MEMORY_ITEMS = [
+  {emo:"📖", label:"Crônica"},
+  {emo:"🎭", label:"Metáfora"},
+  {emo:"📊", label:"Infográfico"},
+  {emo:"👤", label:"Personagem"},
+  {emo:"⏳", label:"Tempo"},
+  {emo:"🏞️", label:"Espaço"},
+  {emo:"😏", label:"Ironia"},
+  {emo:"💥", label:"Onomatopeia"}
+];
+
+let memFirst = null, memLock = false, memFound = 0, memTries = 0;
+const memoryGrid = document.getElementById('memoryGrid');
+
+function setupMemoryGame(){
+  memoryGrid.innerHTML = '';
+  memFirst = null; memLock = false; memFound = 0; memTries = 0;
+  document.getElementById('memFound').textContent = '0';
+  document.getElementById('memTries').textContent = '0';
+  document.getElementById('memoryDone').classList.remove('show');
+
+  const deck = shuffle([...MEMORY_ITEMS, ...MEMORY_ITEMS].map((it, i) => ({...it, uid:i})));
+
+  deck.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'mem-card';
+    card.dataset.label = item.label;
+    card.innerHTML = `
+      <div class="mem-inner">
+        <div class="mem-face mem-back">❓</div>
+        <div class="mem-face mem-front"><span class="fe">${item.emo}</span><span class="fl">${item.label}</span></div>
+      </div>`;
+    card.addEventListener('click', (e) => {
+      if(memLock || card.classList.contains('open') || card.classList.contains('matched')) return;
+      card.classList.add('open');
+      if(!memFirst){
+        memFirst = card;
+      } else {
+        memTries++;
+        document.getElementById('memTries').textContent = memTries;
+        if(memFirst.dataset.label === card.dataset.label){
+          memFirst.classList.add('matched'); card.classList.add('matched');
+          memFound++;
+          document.getElementById('memFound').textContent = memFound;
+          addStar(e.clientX, e.clientY);
+          memFirst = null;
+          if(memFound === MEMORY_ITEMS.length){
+            setTimeout(() => {
+              document.getElementById('memoryDone').classList.add('show');
+              spawnBurst(window.innerWidth/2, 300);
+            }, 400);
+          }
+        } else {
+          memLock = true;
+          setTimeout(() => {
+            memFirst.classList.remove('open'); card.classList.remove('open');
+            memFirst = null; memLock = false;
+          }, 700);
+        }
+      }
+    });
+    memoryGrid.appendChild(card);
+  });
+}
+setupMemoryGame();
+document.getElementById('resetMemBtn').addEventListener('click', setupMemoryGame);
+</script>
+
+</body>
+</html>
